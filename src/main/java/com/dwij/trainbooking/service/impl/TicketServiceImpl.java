@@ -1,6 +1,5 @@
 package com.dwij.trainbooking.service.impl;
 
-import com.dwij.trainbooking.exception.SeatUnavailableException;
 import com.dwij.trainbooking.exception.TicketAlreadyExistsException;
 import com.dwij.trainbooking.exception.UserNotFoundException;
 import com.dwij.trainbooking.models.*;
@@ -26,33 +25,30 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public Ticket purchaseTicket(TicketRequest request) {
-        if (ticketRepository.findByUserEmail(request.getEmail()) != null) {
-            throw new TicketAlreadyExistsException("A ticket is already booked for this email: " + request.getEmail());
-        }
-
+    public Ticket purchaseTicket(String email, Section section) {
         User user;
         try {
-            user = userService.getUserByEmail(request.getEmail());
+            user = userService.getUserByEmail(email);
         } catch (UserNotFoundException e) {
             user = User.builder()
-                    .firstName(request.getFirstName())
-                    .lastName(request.getLastName())
-                    .email(request.getEmail())
+                    .email(email)
                     .build();
             userService.addUser(user);
         }
 
-        Seat seat = seatAllocationService.allocateSeat(request.getSection());
-        if (seat == null) {
-            throw new SeatUnavailableException("No seats available in section: " + request.getSection());
+        Ticket existingTicket = ticketRepository.findByUserEmail(email);
+        
+        if (existingTicket != null) {
+            throw new TicketAlreadyExistsException("A ticket is already booked for this email: " + email);
         }
+
+        Seat seat = seatAllocationService.allocateSeat(section);
 
         Ticket ticket = Ticket.builder()
                 .id(UUID.randomUUID().toString())
                 .user(user)
-                .from(request.getFrom())
-                .to(request.getTo())
+                .from("London")
+                .to("France")
                 .pricePaid(20.0)
                 .seat(seat)
                 .build();

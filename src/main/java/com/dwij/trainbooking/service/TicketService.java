@@ -3,12 +3,12 @@ package com.dwij.trainbooking.service;
 import com.dwij.trainbooking.models.Seat;
 import com.dwij.trainbooking.models.Section;
 import com.dwij.trainbooking.models.Ticket;
-import com.dwij.trainbooking.models.TicketRequest;
 
 import java.util.List;
 
 public interface TicketService {
-    Ticket purchaseTicket(TicketRequest request);
+
+    Ticket purchaseTicket(String email, Section section);
 
     Ticket getTicket(String email);
 
@@ -17,4 +17,5 @@ public interface TicketService {
     Ticket modifySeat(String email, Seat requestedSeat);
 
     List<String> getUsersAndSeatsBySection(Section section);
+    
 }

@@ -32,20 +32,20 @@ class TicketServiceImplTest {
 
     @Test
     void shouldPurchaseTicketSuccessfully() {
-        TicketRequest request = new TicketRequest("John", "Doe", "john.doe@example.com", "London", "France", Section.A);
+        String email = "john.doe@example.com";
+        Section section = Section.A;
+
         User user = User.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .email("john.doe@example.com")
+                .email(email)
                 .build();
         Seat seat = new Seat("A1", Section.A);
 
-        when(ticketRepository.findByUserEmail("john.doe@example.com")).thenReturn(null);
-        when(seatAllocationService.allocateSeat(Section.A)).thenReturn(seat);
-        when(userService.getUserByEmail("john.doe@example.com")).thenThrow(new UserNotFoundException("User not found"));
+        when(ticketRepository.findByUserEmail(email)).thenReturn(null);
+        when(seatAllocationService.allocateSeat(section)).thenReturn(seat);
+        when(userService.getUserByEmail(email)).thenThrow(new UserNotFoundException("User not found"));
         doNothing().when(userService).addUser(user);
 
-        Ticket ticket = ticketService.purchaseTicket(request);
+        Ticket ticket = ticketService.purchaseTicket(email, section);
 
         assertNotNull(ticket);
         assertEquals("London", ticket.getFrom());
@@ -57,37 +57,39 @@ class TicketServiceImplTest {
 
     @Test
     void shouldThrowExceptionWhenTicketAlreadyExists() {
-        TicketRequest request = new TicketRequest("John", "Doe", "john.doe@example.com", "London", "France", Section.A);
+        String email = "john.doe@example.com";
+        Section section = Section.A;
 
-        when(ticketRepository.findByUserEmail("john.doe@example.com")).thenReturn(Ticket.builder().build());
+        when(ticketRepository.findByUserEmail(email)).thenReturn(Ticket.builder().build());
 
         TicketAlreadyExistsException exception = assertThrows(TicketAlreadyExistsException.class,
-                () -> ticketService.purchaseTicket(request));
+                () -> ticketService.purchaseTicket(email, section));
 
-        assertEquals("A ticket is already booked for this email: john.doe@example.com", exception.getMessage());
+        assertEquals("A ticket is already booked for this email: " + email, exception.getMessage());
     }
 
     @Test
     void shouldThrowExceptionWhenNoSeatsAvailable() {
-        TicketRequest request = new TicketRequest("John", "Doe", "john.doe@example.com", "London", "France", Section.A);
+        String email = "john.doe@example.com";
+        Section section = Section.A;
 
-        when(ticketRepository.findByUserEmail("john.doe@example.com")).thenReturn(null);
-        when(seatAllocationService.allocateSeat(Section.A)).thenReturn(null);
+        when(ticketRepository.findByUserEmail(email)).thenReturn(null);
+        when(seatAllocationService.allocateSeat(section)).thenThrow(new SeatUnavailableException("No seats available in section: " + section));
 
         SeatUnavailableException exception = assertThrows(SeatUnavailableException.class,
-                () -> ticketService.purchaseTicket(request));
+                () -> ticketService.purchaseTicket(email, section));
 
-        assertEquals("No seats available in section: A", exception.getMessage());
+        assertEquals("No seats available in section: " + section, exception.getMessage());
     }
 
     @Test
     void shouldCancelTicketSuccessfully() {
+        String email = "john.doe@example.com";
+
         Ticket ticket = Ticket.builder()
                 .id("1")
                 .user(User.builder()
-                        .firstName("John")
-                        .lastName("Doe")
-                        .email("john.doe@example.com")
+                        .email(email)
                         .build())
                 .from("London")
                 .to("France")
@@ -95,22 +97,22 @@ class TicketServiceImplTest {
                 .seat(new Seat("A1", Section.A))
                 .build();
 
-        when(ticketRepository.findByUserEmail("john.doe@example.com")).thenReturn(ticket);
+        when(ticketRepository.findByUserEmail(email)).thenReturn(ticket);
 
-        ticketService.cancelTicket("john.doe@example.com");
+        ticketService.cancelTicket(email);
 
         verify(seatAllocationService, times(1)).releaseSeat(ticket.getSeat());
-        verify(ticketRepository, times(1)).deleteByUserEmail("john.doe@example.com");
+        verify(ticketRepository, times(1)).deleteByUserEmail(email);
     }
 
     @Test
     void shouldModifySeatSuccessfully() {
+        String email = "john.doe@example.com";
+
         Ticket ticket = Ticket.builder()
                 .id("1")
                 .user(User.builder()
-                        .firstName("John")
-                        .lastName("Doe")
-                        .email("john.doe@example.com")
+                        .email(email)
                         .build())
                 .from("London")
                 .to("France")
@@ -120,11 +122,11 @@ class TicketServiceImplTest {
 
         Seat requestedSeat = new Seat("B1", Section.B);
 
-        when(ticketRepository.findByUserEmail("john.doe@example.com")).thenReturn(ticket);
+        when(ticketRepository.findByUserEmail(email)).thenReturn(ticket);
         when(seatAllocationService.isSeatAvailable(requestedSeat)).thenReturn(true);
         when(seatAllocationService.reallocateSeat(ticket.getSeat(), requestedSeat)).thenReturn(requestedSeat);
 
-        Ticket updatedTicket = ticketService.modifySeat("john.doe@example.com", requestedSeat);
+        Ticket updatedTicket = ticketService.modifySeat(email, requestedSeat);
 
         assertNotNull(updatedTicket);
         assertEquals("B1", updatedTicket.getSeat().getSeatNumber());
@@ -139,8 +141,6 @@ class TicketServiceImplTest {
         Ticket ticket1 = Ticket.builder()
                 .id("1")
                 .user(User.builder()
-                        .firstName("John")
-                        .lastName("Doe")
                         .email("john.doe@example.com")
                         .build())
                 .seat(new Seat("A1", Section.A))
@@ -149,8 +149,6 @@ class TicketServiceImplTest {
         Ticket ticket2 = Ticket.builder()
                 .id("2")
                 .user(User.builder()
-                        .firstName("Jane")
-                        .lastName("Smith")
                         .email("jane.smith@example.com")
                         .build())
                 .seat(new Seat("A2", Section.A))
