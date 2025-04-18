@@ -1,6 +1,5 @@
 package com.dwij.trainbooking.service.impl;
 
-import com.dwij.trainbooking.exception.UserAlreadyExistsException;
 import com.dwij.trainbooking.exception.UserNotFoundException;
 import com.dwij.trainbooking.models.User;
 import com.dwij.trainbooking.repository.UserRepository;
@@ -17,9 +16,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void addUser(User user) {
-        if (userRepository.findByEmail(user.getEmail()) != null) {
-            throw new UserAlreadyExistsException("A user with this email already exists: " + user.getEmail());
-        }
         userRepository.save(user);
     }
 
