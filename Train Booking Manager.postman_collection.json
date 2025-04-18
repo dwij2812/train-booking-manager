@@ -1,0 +1,59 @@
+{
+	"info": {
+		"_postman_id": "b90e26b5-ec53-4975-82e8-75deb17fe172",
+		"name": "Train Booking Manager",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4212051"
+	},
+	"item": [
+		{
+			"name": "Seats",
+			"item": [
+				{
+					"name": "Get Available Seats by Section",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/seats/available/A",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"seats",
+								"available",
+								"A"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Allocated Seats by Section",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/seats/allocated/A",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"seats",
+								"allocated",
+								"A"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
