@@ -45,7 +45,7 @@ class SimpleSeatAllocationServiceTest {
 
         assertThatThrownBy(() -> seatService.allocateSeat(Section.A))
                 .isInstanceOf(SeatUnavailableException.class)
-                .hasMessageContaining("No seats available");
+                .hasMessageContaining("No seats available in section: A");
     }
 
     @Test
@@ -60,5 +60,42 @@ class SimpleSeatAllocationServiceTest {
 
         assertThat(actual).hasSize(10);
         assertThat(actual).isEqualTo(expectedSeatNumbers);
+    }
+
+    @Test
+    void shouldReallocateSeatSuccessfully() {
+        Seat currentSeat = new Seat("A1", Section.A);
+        Seat requestedSeat = new Seat("B1", Section.B);
+
+        seatService.releaseSeat(currentSeat);
+        seatService.releaseSeat(requestedSeat);
+
+        Seat reallocatedSeat = seatService.reallocateSeat(currentSeat, requestedSeat);
+
+        assertThat(reallocatedSeat).isEqualTo(requestedSeat);
+        assertThat(seatService.isSeatAvailable(currentSeat)).isTrue();
+        assertThat(seatService.isSeatAvailable(requestedSeat)).isFalse();
+    }
+
+    @Test
+    void shouldThrowExceptionWhenRequestedSeatIsUnavailable() {
+        Seat currentSeat = new Seat("A1", Section.A);
+        Seat requestedSeat = new Seat("B1", Section.B);
+
+        seatService.releaseSeat(currentSeat);
+
+        assertThatThrownBy(() -> seatService.reallocateSeat(currentSeat, requestedSeat))
+                .isInstanceOf(SeatUnavailableException.class)
+                .hasMessageContaining("The requested seat B1 is not available.");
+    }
+
+    @Test
+    void shouldHandleReallocatingSameSeat() {
+        Seat currentSeat = new Seat("A1", Section.A);
+
+        Seat allocatedSeat = seatService.reallocateSeat(currentSeat, currentSeat);
+
+        assertThat(allocatedSeat).isEqualTo(currentSeat);
+        assertThat(seatService.isSeatAvailable(currentSeat)).isFalse();
     }
 }

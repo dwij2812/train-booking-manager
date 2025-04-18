@@ -1,42 +1,27 @@
 package com.dwij.trainbooking.models;
 
 public class Seat {
-    private String seatNumber;
-    private Section section;
+    private final String seatNumber;
+    private final Section section;
 
-    private Seat(Builder builder) {
-        this.seatNumber = builder.seatNumber;
-        this.section = builder.section;
+    public Seat(String seatNumber, Section section) {
+        this.seatNumber = seatNumber;
+        this.section = section;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public String getSeatNumber() {
+        return seatNumber;
     }
 
-    public static class Builder {
-        private String seatNumber;
-        private Section section;
-
-        public Builder seatNumber(String seatNumber) {
-            this.seatNumber = seatNumber;
-            return this;
-        }
-
-        public Builder section(Section section) {
-            this.section = section;
-            return this;
-        }
-
-        public Seat build() {
-            return new Seat(this);
-        }
+    public Section getSection() {
+        return section;
     }
-
-    public String getSeatNumber() { return seatNumber; }
-    public Section getSection() { return section; }
 
     @Override
     public String toString() {
-        return seatNumber + " (Section " + section + ")";
+        return "Seat{" +
+                "seatNumber='" + seatNumber + '\'' +
+                ", section=" + section +
+                '}';
     }
 }

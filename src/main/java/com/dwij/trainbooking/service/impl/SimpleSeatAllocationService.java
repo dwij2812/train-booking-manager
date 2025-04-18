@@ -18,10 +18,7 @@ public class SimpleSeatAllocationService implements SeatAllocationStrategy {
             PriorityQueue<Seat> seats = new PriorityQueue<>(Comparator.comparingInt(seat -> 
                 Integer.parseInt(seat.getSeatNumber().replaceAll("\\D", ""))));
             for (int i = 1; i <= MAX_SEATS_PER_SECTION; i++) {
-                seats.add(Seat.builder()
-                        .seatNumber(section.name() + i)
-                        .section(section)
-                        .build());
+                seats.add(new Seat(section.name() + i, section));
             }
             availableSeats.put(section, seats);
         }
@@ -34,6 +31,25 @@ public class SimpleSeatAllocationService implements SeatAllocationStrategy {
             throw new SeatUnavailableException("No seats available in section: " + section);
         }
         return seat;
+    }
+
+    @Override
+    public Seat reallocateSeat(Seat currentSeat, Seat requestedSeat) {
+if (currentSeat.equals(requestedSeat)) {
+            return currentSeat;
+}
+
+        if (!isSeatAvailable(requestedSeat)) {
+            throw new SeatUnavailableException("The requested seat " + requestedSeat.getSeatNumber() + " is not available.");
+        }
+    
+        releaseSeat(currentSeat);
+        availableSeats.get(requestedSeat.getSection()).remove(requestedSeat);
+        return requestedSeat;
+    }
+
+    public boolean isSeatAvailable(Seat seat) {
+        return availableSeats.get(seat.getSection()).contains(seat);
     }
 
     @Override

@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface SeatAllocationStrategy {
     Seat allocateSeat(Section section);
+    Seat reallocateSeat(Seat currentSeat, Seat newSeat);
     void releaseSeat(Seat seat);
     List<Seat> getAvailableSeats(Section section);
 }

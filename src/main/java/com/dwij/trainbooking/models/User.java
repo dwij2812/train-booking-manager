@@ -11,6 +11,18 @@ public class User {
         this.email = builder.email;
     }
 
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -38,14 +50,5 @@ public class User {
         public User build() {
             return new User(this);
         }
-    }
-
-    public String getFirstName() { return firstName; }
-    public String getLastName() { return lastName; }
-    public String getEmail() { return email; }
-
-    @Override
-    public String toString() {
-        return firstName + " " + lastName + " (" + email + ")";
     }
 }
