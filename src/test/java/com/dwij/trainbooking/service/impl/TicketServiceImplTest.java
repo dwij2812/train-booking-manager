@@ -2,10 +2,9 @@ package com.dwij.trainbooking.service.impl;
 
 import com.dwij.trainbooking.exception.SeatUnavailableException;
 import com.dwij.trainbooking.exception.TicketAlreadyExistsException;
-import com.dwij.trainbooking.exception.UserNotFoundException;
+import com.dwij.trainbooking.exception.TicketNotFoundException;
 import com.dwij.trainbooking.models.*;
 import com.dwij.trainbooking.repository.TicketRepository;
-import com.dwij.trainbooking.service.TicketService;
 import com.dwij.trainbooking.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,7 @@ class TicketServiceImplTest {
     private TicketRepository ticketRepository;
     private SimpleSeatAllocationService seatAllocationService;
     private UserService userService;
-    private TicketService ticketService;
+    private TicketServiceImpl ticketService;
 
     @BeforeEach
     void setUp() {
@@ -42,8 +41,7 @@ class TicketServiceImplTest {
 
         when(ticketRepository.findByUserEmail(email)).thenReturn(null);
         when(seatAllocationService.allocateSeat(section)).thenReturn(seat);
-        when(userService.getUserByEmail(email)).thenThrow(new UserNotFoundException("User not found"));
-        doNothing().when(userService).addUser(user);
+        when(userService.getUserByEmail(email)).thenReturn(user);
 
         Ticket ticket = ticketService.purchaseTicket(email, section);
 
@@ -83,6 +81,18 @@ class TicketServiceImplTest {
     }
 
     @Test
+    void shouldThrowExceptionWhenTicketNotFoundForCancelTicket() {
+        String email = "nonexistent@example.com";
+
+        when(ticketRepository.findByUserEmail(email)).thenReturn(null);
+
+        TicketNotFoundException exception = assertThrows(TicketNotFoundException.class,
+                () -> ticketService.cancelTicket(email));
+
+        assertEquals("No ticket found for email: " + email, exception.getMessage());
+    }
+
+    @Test
     void shouldCancelTicketSuccessfully() {
         String email = "john.doe@example.com";
 
@@ -103,6 +113,19 @@ class TicketServiceImplTest {
 
         verify(seatAllocationService, times(1)).releaseSeat(ticket.getSeat());
         verify(ticketRepository, times(1)).deleteByUserEmail(email);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenTicketNotFoundForModifySeat() {
+        String email = "nonexistent@example.com";
+        Seat requestedSeat = new Seat("B1", Section.B);
+
+        when(ticketRepository.findByUserEmail(email)).thenReturn(null);
+
+        TicketNotFoundException exception = assertThrows(TicketNotFoundException.class,
+                () -> ticketService.modifySeat(email, requestedSeat));
+
+        assertEquals("No ticket found for email: " + email, exception.getMessage());
     }
 
     @Test

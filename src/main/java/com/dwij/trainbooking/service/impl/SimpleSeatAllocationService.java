@@ -35,9 +35,9 @@ public class SimpleSeatAllocationService implements SeatAllocationStrategy {
 
     @Override
     public Seat reallocateSeat(Seat currentSeat, Seat requestedSeat) {
-if (currentSeat.equals(requestedSeat)) {
-            return currentSeat;
-}
+        if (currentSeat.equals(requestedSeat)) {
+                    return currentSeat;
+        }
 
         if (!isSeatAvailable(requestedSeat)) {
             throw new SeatUnavailableException("The requested seat " + requestedSeat.getSeatNumber() + " is not available.");

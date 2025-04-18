@@ -1,7 +1,7 @@
 package com.dwij.trainbooking.service.impl;
 
 import com.dwij.trainbooking.exception.TicketAlreadyExistsException;
-import com.dwij.trainbooking.exception.UserNotFoundException;
+import com.dwij.trainbooking.exception.TicketNotFoundException;
 import com.dwij.trainbooking.models.*;
 import com.dwij.trainbooking.repository.TicketRepository;
 import com.dwij.trainbooking.service.TicketService;
@@ -18,7 +18,8 @@ public class TicketServiceImpl implements TicketService {
     private final SimpleSeatAllocationService seatAllocationService;
     private final UserService userService;
 
-    public TicketServiceImpl(TicketRepository ticketRepository, SimpleSeatAllocationService seatAllocationService, UserService userService) {
+    public TicketServiceImpl(TicketRepository ticketRepository, SimpleSeatAllocationService seatAllocationService,
+            UserService userService) {
         this.ticketRepository = ticketRepository;
         this.seatAllocationService = seatAllocationService;
         this.userService = userService;
@@ -26,18 +27,10 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public Ticket purchaseTicket(String email, Section section) {
-        User user;
-        try {
-            user = userService.getUserByEmail(email);
-        } catch (UserNotFoundException e) {
-            user = User.builder()
-                    .email(email)
-                    .build();
-            userService.addUser(user);
-        }
+        User user = userService.getUserByEmail(email);
 
         Ticket existingTicket = ticketRepository.findByUserEmail(email);
-        
+
         if (existingTicket != null) {
             throw new TicketAlreadyExistsException("A ticket is already booked for this email: " + email);
         }
@@ -59,26 +52,29 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public Ticket getTicket(String email) {
-        return ticketRepository.findByUserEmail(email);
+        Ticket ticket = ticketRepository.findByUserEmail(email);
+        if (ticket == null) {
+            throw new TicketNotFoundException("No ticket found for email: " + email);
+        }
+        return ticket;
     }
 
     @Override
     public void cancelTicket(String email) {
         Ticket ticket = ticketRepository.findByUserEmail(email);
-        if (ticket != null) {
-            seatAllocationService.releaseSeat(ticket.getSeat());
-            ticketRepository.deleteByUserEmail(email);
+        if (ticket == null) {
+            throw new TicketNotFoundException("No ticket found for email: " + email);
         }
+        seatAllocationService.releaseSeat(ticket.getSeat());
+        ticketRepository.deleteByUserEmail(email);
     }
 
     @Override
     public Ticket modifySeat(String email, Seat requestedSeat) {
         Ticket ticket = getTicket(email);
-
         Seat newSeat = seatAllocationService.reallocateSeat(ticket.getSeat(), requestedSeat);
         Ticket updatedTicket = ticket.withSeat(newSeat);
         ticketRepository.save(updatedTicket);
-
         return updatedTicket;
     }
 

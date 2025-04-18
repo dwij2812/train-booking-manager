@@ -64,10 +64,8 @@ class SimpleSeatAllocationServiceTest {
 
     @Test
     void shouldReallocateSeatSuccessfully() {
-        Seat currentSeat = new Seat("A1", Section.A);
-        Seat requestedSeat = new Seat("B1", Section.B);
-
-        seatService.releaseSeat(currentSeat);
+        Seat currentSeat = seatService.allocateSeat(Section.A);
+        Seat requestedSeat = seatService.allocateSeat(Section.B);
         seatService.releaseSeat(requestedSeat);
 
         Seat reallocatedSeat = seatService.reallocateSeat(currentSeat, requestedSeat);
@@ -79,7 +77,8 @@ class SimpleSeatAllocationServiceTest {
 
     @Test
     void shouldThrowExceptionWhenRequestedSeatIsUnavailable() {
-        Seat currentSeat = new Seat("A1", Section.A);
+        Seat currentSeat = seatService.allocateSeat(Section.A);
+        seatService.allocateSeat(Section.B);
         Seat requestedSeat = new Seat("B1", Section.B);
 
         seatService.releaseSeat(currentSeat);
@@ -91,6 +90,7 @@ class SimpleSeatAllocationServiceTest {
 
     @Test
     void shouldHandleReallocatingSameSeat() {
+        seatService.allocateSeat(Section.A);
         Seat currentSeat = new Seat("A1", Section.A);
 
         Seat allocatedSeat = seatService.reallocateSeat(currentSeat, currentSeat);

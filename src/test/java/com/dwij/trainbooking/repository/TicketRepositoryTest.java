@@ -1,6 +1,5 @@
 package com.dwij.trainbooking.repository;
 
-import com.dwij.trainbooking.exception.TicketAlreadyExistsException;
 import com.dwij.trainbooking.models.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +41,7 @@ class TicketRepositoryTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenSavingDuplicateTicket() {
+    void shouldUpdateExistingTicketSuccessfully() {
         User user = User.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -57,12 +56,29 @@ class TicketRepositoryTest {
                 .seat(new Seat("A1", Section.A))
                 .build();
 
+        // Save the initial ticket
         ticketRepository.save(ticket);
 
-        TicketAlreadyExistsException exception = assertThrows(TicketAlreadyExistsException.class, () ->
-                ticketRepository.save(ticket));
+        // Update the ticket with new details
+        Ticket updatedTicket = Ticket.builder()
+                .id("1")
+                .user(user)
+                .from("London")
+                .to("Berlin")
+                .pricePaid(25.0)
+                .seat(new Seat("B1", Section.B))
+                .build();
 
-        assertEquals("A ticket is already booked for this email: john.doe@example.com", exception.getMessage());
+        ticketRepository.save(updatedTicket);
+
+        // Retrieve the updated ticket
+        Ticket retrievedTicket = ticketRepository.findByUserEmail("john.doe@example.com");
+        assertNotNull(retrievedTicket);
+        assertEquals("London", retrievedTicket.getFrom());
+        assertEquals("Berlin", retrievedTicket.getTo());
+        assertEquals(25.0, retrievedTicket.getPricePaid());
+        assertEquals("B1", retrievedTicket.getSeat().getSeatNumber());
+        assertEquals(Section.B, retrievedTicket.getSeat().getSection());
     }
 
     @Test
