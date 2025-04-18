@@ -1,6 +1,6 @@
 package com.dwij.trainbooking.repository;
 
-import com.dwij.trainbooking.exception.UserAlreadyExistsException;
+import com.dwij.trainbooking.exception.TicketAlreadyExistsException;
 import com.dwij.trainbooking.models.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,7 +59,7 @@ class TicketRepositoryTest {
 
         ticketRepository.save(ticket);
 
-        UserAlreadyExistsException exception = assertThrows(UserAlreadyExistsException.class, () ->
+        TicketAlreadyExistsException exception = assertThrows(TicketAlreadyExistsException.class, () ->
                 ticketRepository.save(ticket));
 
         assertEquals("A ticket is already booked for this email: john.doe@example.com", exception.getMessage());

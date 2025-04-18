@@ -1,6 +1,6 @@
 package com.dwij.trainbooking.repository;
 
-import com.dwij.trainbooking.exception.UserAlreadyExistsException;
+import com.dwij.trainbooking.exception.TicketAlreadyExistsException;
 import com.dwij.trainbooking.models.Ticket;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +13,7 @@ public class TicketRepository {
 
     public void save(Ticket ticket) {
         if (tickets.containsKey(ticket.getUser().getEmail())) {
-            throw new UserAlreadyExistsException("A ticket is already booked for this email: " + ticket.getUser().getEmail());
+            throw new TicketAlreadyExistsException("A ticket is already booked for this email: " + ticket.getUser().getEmail());
         }
         tickets.put(ticket.getUser().getEmail(), ticket);
     }
